@@ -179,7 +179,8 @@ async function test() {
   fs.writeFileSync(`./src/${scope}StateSchema.ts`, stateSchema);
   const graphqlSchema = makeStateGraphqlSchema(scope, testFields);
   fs.writeFileSync(`./src/${scope}StateSchema.graphql`, graphqlSchema);
-  const jsonSchema = await makeStateJsonSchema(scope, graphqlSchema);
+  const graphqlSchemaWithoutNewlines = graphqlSchema.replace(/\s+/g, ' ').trim();
+  const jsonSchema = await makeStateJsonSchema(scope, graphqlSchemaWithoutNewlines);
   fs.writeFileSync(`./src/${scope}StateSchema.json`, jsonSchema);
   const exampleStateJson = {
     "$schema": "./TestStateSchema.json",
@@ -193,9 +194,9 @@ async function test() {
       "test1",
       "test2"
     ],
-    "graphqlSchema": graphqlSchema,
+    "graphqlSchema": graphqlSchemaWithoutNewlines,
   }
-  fs.writeFileSync(`./src/${scope}-state.json`, JSON.stringify(exampleStateJson, null, 2));
+  fs.writeFileSync(`./src/${scope.toLowerCase()}-state.json`, JSON.stringify(exampleStateJson, null, 2));
 }
 
 test().catch(console.error);

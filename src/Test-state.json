@@ -10,5 +10,5 @@
     "test1",
     "test2"
   ],
-  "graphqlSchema": "type TestState {\n  id: ID!\n  ids: [ID!]!\n  name: String\n  names: [String]\n}\n"
+  "graphqlSchema": "type TestState { id: ID! ids: [ID!]! name: String names: [String] }"
 }
