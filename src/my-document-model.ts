@@ -159,12 +159,45 @@ export const myDocument: MyDocument = {
 
 export const myReducer: MyReducer = MyReducerFactory.implement((document, action) => {
   switch (action.type) {
-    case "action1":
-      return document;
-    case "action2":
-      return document;
-    case "action3":
-      return document;
+    case "action1": {
+      const { something } = action.input;
+      return {
+        ...document,
+        state: {
+          ...document.state,
+          scope1: {
+            ...document.state.scope1,
+            something,
+          },
+        }
+      }
+    }
+    case "action2": {
+      const { somethingElse } = action.input;
+      return {
+        ...document,
+        state: {
+          ...document.state,
+          scope2: {
+            ...document.state.scope2,
+            somethingElse,
+          },
+        }
+      }
+    }
+    case "action3": {
+      const { someNumbers } = action.input;
+      return {
+        ...document,
+        state: {
+          ...document.state,
+          scope3: {
+            ...document.state.scope3,
+            someNumbers,
+          },
+        }
+      }
+    }
     default:
       return document;
   }

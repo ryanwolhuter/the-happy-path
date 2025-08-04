@@ -129,11 +129,14 @@ ${fieldSchemas.join('\n')}
 `
 }
 
-async function makeStateJsonSchema(scope: string) {
+async function makeStateJsonSchema(scope: string, graphqlSchema: string) {
   const stateSchemaFile = await import(`./${scope}StateSchema.ts`);
   const StateSchema = stateSchemaFile[`${scope}StateSchema`];
-  const jsonSchema = z.toJSONSchema(StateSchema, { io: 'input'});
-  return jsonSchema;
+  const jsonSchema = z.toJSONSchema(StateSchema.extend({
+    $schema: z.literal(`./${scope}StateSchema.json`),
+    graphqlSchema: z.literal(graphqlSchema),
+  }));
+  return JSON.stringify(jsonSchema, null, 2);
 }
 
 async function test() {
@@ -174,10 +177,25 @@ async function test() {
   ]
   const stateSchema = makeStateZodSchema(scope, testFields);
   fs.writeFileSync(`./src/${scope}StateSchema.ts`, stateSchema);
-  const jsonSchema = await makeStateJsonSchema(scope);
-  fs.writeFileSync(`./src/${scope}StateSchema.json`, JSON.stringify(jsonSchema, null, 2));
   const graphqlSchema = makeStateGraphqlSchema(scope, testFields);
   fs.writeFileSync(`./src/${scope}StateSchema.graphql`, graphqlSchema);
+  const jsonSchema = await makeStateJsonSchema(scope, graphqlSchema);
+  fs.writeFileSync(`./src/${scope}StateSchema.json`, jsonSchema);
+  const exampleStateJson = {
+    "$schema": "./TestStateSchema.json",
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "ids": [
+      "123e4567-e89b-12d3-a456-426614174000",
+      "123e4567-e89b-12d3-a456-426614174001"
+    ],
+    "name": "test",
+    "names": [
+      "test1",
+      "test2"
+    ],
+    "graphqlSchema": graphqlSchema,
+  }
+  fs.writeFileSync(`./src/${scope}-state.json`, JSON.stringify(exampleStateJson, null, 2));
 }
 
 test().catch(console.error);
