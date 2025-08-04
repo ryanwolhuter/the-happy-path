@@ -1,0 +1,6 @@
+type TestState {
+  id: ID!
+  ids: [ID!]!
+  name: String
+  names: [String]
+}
