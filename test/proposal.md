@@ -1,10 +1,6 @@
 # Changes to the foundation
 
-What is a document model? what is it's source of truth? Is it a graphql schema? Is it a json file? Is it data in a server? 
-
-We have ended up in a situation where it is some awkward combination of all of the above.
-
-We have chosen to use graphql to define document models on the assumption that "analysts are familiar with it". I will challenge this assumption later, but for now let's assume it to be true.
+Currently, document models are expected to use graphql schemas as their source of truth. 
 
 We want to say this: 
 
@@ -69,75 +65,105 @@ Therefore we can conclude that 4 is false.
 
 Therefore we can conclude that the premise that we can use graphql alone to define document models is false.
 
-This is also why you will not find tools for creating things like zod schemas from graphql. There simply is no point.
+## Current workaround:
 
-How do we get this missing information today?
+We derive this missing data using brittle and error prone means:
 
-We very, very awkwardly try to gather it by looking at the selected scope in the editor for the scope, then we use the name of the operation which is just entered through a normal text input (not graphql) to generate the name of the graphql input type, and then we dispatch operations to "SET_OPERATION_SCHEMA" which contain the graphql input type, and then we read the name of that graphql input type and guess at an appropriate name of the action. All of this happens without the control or knowledge of the user creating the document model, which is why our todo demo has actions with names like this: "AddTodoItemInputInput".
+- scope: use the selected scope from the editor, hardcoded as 'global' or 'local'
+- operation name: entered by user in textbox
+- graphql input schema name: created from operation name with the form `input {PascalCaseOperationName}Input`
+- graphql input schema: entered by user in code editor
+- action type: created from graphql input schema name with the form `type: "CONSTANT_INPUT_NAME"`
 
-By doing this, we have already acknowledged that we cannot use graphql to defined document models. We are already using text inputs for important fields.
+### Pitfalls:
 
-What is the alternative?
+- graphql string parsing and schema building is error prone
+- using an input name that does not exactly correspond to the operation name breaks the codegen
+- we are already getting the `type` based on the operation name text input, not graphql
+- determining action `type` is done without the control or knowledge of the user creating the document model, which is why our todo demo has actions with types like this: "AddTodoItemInputInput"
 
-We have said that "analysts are more familiar with graphql". 
-More familiar with it than what? With text inputs and dropdowns?
-Surely there is no person alive who is more familiar with writing graphql than they are with clicking buttons.
+We are doing this because we have already acknowledged that we cannot use graphql to defined document models. 
+We are already using text inputs for important fields.
 
-There are plenty of great tools for doing the reverse of what we are currently doing, i.e. taking zod schemas and creating graphql schemas from them. This is easy because we are going from more information to less.
+### What is the alternative?
 
-Like this one for example: https://gqloom.dev/en/docs
-
-My alternative here is to create just a simple form.
-
+We create a simple form with text inputs and dropdowns, with a readonly code block of the graphql next to each entry.
 We can already create a dropdown from the list of scalars we support.
 
-To define the state:
+#### To define the state:
 
 - text input: scope
-then we can dispatch an operation "SET_STATE_SCHEMA" with no fields and create this
-```graphql
-type State {}
-```
-and we can show this in a read-only code block next to the inputs
 - text input: field name
 tell us the name of the field you want to add to your state
 - dropdown: field type, one of: PHScalars, array of PHScalar, custom type
 from there we can create `myFieldName: MySelectedType`
-We can then dispatch another "SET_STATE_SCHEMA" operation, but really it makes no sense that we can only use this one operation. We should actually have "CREATE_INITIAL_STATE_SCHEMA", "ADD_STATE_SCHEMA_FIELD", "REMOVE_STATE_SCHEMA_FIELD", "UPDATE_STATE_SCHEMA_FIELD" so that we can actually keep track of how the state schema is changing.
 
-then for actions:
+we can then show:
+```graphql
+type State {
+ myFieldName: MySelectedType
+}
+```
+We can dispatch "SET_STATE_SCHEMA" operations with this.
+
+However, it would be better to have:
+
+"CREATE_INITIAL_STATE_SCHEMA", 
+"ADD_STATE_SCHEMA_FIELD", 
+"REMOVE_STATE_SCHEMA_FIELD", 
+"UPDATE_STATE_SCHEMA_FIELD" 
+
+so that we can keep track of how the state schema is changing.
+
+#### To define the actions:
+
 - text input: action name
-then we can dispatch an operation "SET_STATE_SCHEMA" with no fields and create this
-```graphql
-input ActionNameInput {}
-```
 - text input: action scope / just use the selected scope in editor
-the next part is identical to above:
-- text input: field name
-tell us the name of the field you want to add to your state
+- text input: input field name
 - dropdown: field type, one of: PHScalars, array of PHScalar, custom type
 from there we can create `myFieldName: MySelectedType`
 
-The key point is this:
+we can then show:
 
-We don't have to use difficult to handle, brittle graphql strings as our inputs when creating document models. We can use normal objects with fields and then safely create the graphql strings from them, which is much, much easier than doing the reverse.
+```graphql
+"""
+AddNameAction
+{
+  type: "ADD_NAME",
+  scope: "my-scope",
+  input: {
+    myFieldName: MySelectedType
+  }
+}
+"""
+input AddNameInput {
+  myFieldName: MySelectedType
+}
+```
+
+### Summary of solution
+
+We don't have to use difficult to handle, brittle graphql strings as our inputs when creating document models.
+
+We can use normal objects with fields and then safely create the graphql strings from them, which is much, much easier than doing the reverse.
 
 Doing this significantly simplifies things for both the developer and the user.
 
 - the user can still see the graphql code
-- the user can actually control things like names and scopes for actions
-- we can enforce that the user uses only things that our codegen actually can use
-- we don't have to run a loop that commits whatever is in the editor every five seconds, even if it is not valid code
+- the user can choose the scope and type when creating actions explicitly
+- we can enforce that the user can only select types that work with our codegen
+- we don't have to run a loop that commits the code in the editor every five seconds, even if it is invalid
 - we don't need to ship a whole graphql code editor in the document model editor
-- we can use the inputs to these operations to create the actions without needing to try and guess half the critical data by reading graphql strings
 
-As things are now, it is totally possible that a remote user is editing the document model that I am also working on, and then the loop that we have running which just dispatches the "SET_SCHEMA" operation runs before they are done typing, which commits invalid code, and breaks the document model on my machine. 
+## Current implementation violates the graphql spec
 
-We have said that we don't want to violate the graphql spec. Unfortunately we are already significantly violating the graphql spec:
+The following violations of the graphql spec exist in the current document model editor:
 
 - Users cannot defined a `type Query` and `type Mutation` which are the basis of all graphql schemas
-- We do not provide a means for users to define resolvers themselves
-- We do not support recursive types. Last year we did a test and proved that this 
+- We do not provide a means for users to define resolvers
+- We do not support recursive types, see below
+
+Last year we did a test and proved that this 
 
 ```graphql
 type MyType {
@@ -149,11 +175,25 @@ Does not work with our codegen. It would need to produce a lazily evaluated zod 
 
 and we demonstrated that it does not do this.
 
+## Summary of benefits
+
 By using normal objects as our inputs for the document model editor operations we can still achieve the same as before, but much better and easier.
 
-We can still let users see graphql code if they want to
-Users who do not know graphql can also create document models just as easily
-Users who do know graphql will not be unpleasantly surprised when our editor does not behave as expected
-We only dispatch operations when the user actually intends to
-We do not need to parse graphql at all, only create from safe inputs
-We can access the input data directly in the reducer, which lets us do all kinds of checks and validations etc. which are currently impossible.
+#### New features
+If we know the name of a given type as selected by the user from our dropdown, we can look up the appropriate zod schema from our scalars library. We can then use these for each of the fields in a given state or action input to create a zod schema for the entire object, without ever needing to parse graphql. From these zod schemas, we can: 
+
+- infer all of the necessary types for state and actions, including validation of action types and action scopes
+- generate accurate graphql schemas to include in the document model specifications and display in the document model editor
+- generate json schemas for the document model specifications so developers can have validation and autocomplete in the specification json files
+- use zod's z.function().implement to create reducer functions that validate the state, action (including that the scope and type are correct) and resulting state with no extra codegen or input from builders
+
+#### Benefits for the user
+- We can still let users see graphql code if they want to
+- Users who do not know graphql can also create document models just as easily
+- Users who do know graphql will not be unpleasantly surprised when our editor does not behave as expected
+
+#### Benefits for the platform
+- We only dispatch operations when the user actually intends to
+- We do not need to parse graphql at all, only create graphql schema from safe inputs
+- We can leverage robust libraries for generating graphql schemas from our zod schemas like https://gqloom.dev/en/docs
+- We can access the input data directly in the reducer, which lets us do all kinds of checks and validations etc. which are currently impossible.
