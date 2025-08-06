@@ -1,0 +1,27 @@
+type State {
+  global: {
+    globalStuff: [String]
+  }
+  other: {
+    id: ID!
+    ids: [ID!]!
+    name: String
+    names: [String]
+  }
+}
+
+input AddNameInput {
+  name: String!
+}
+
+input RemoveNameInput {
+  name: String!
+}
+
+# impossible
+
+type AddNameAction {
+  type: "ADD_NAME"
+  scope: "global"
+  input: AddNameInput!
+}

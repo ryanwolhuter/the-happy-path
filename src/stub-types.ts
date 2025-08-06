@@ -13,3 +13,7 @@ export type Signer = {
 };
 export type Operation = any;
 export type DocumentModelUtils = any;
+
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};

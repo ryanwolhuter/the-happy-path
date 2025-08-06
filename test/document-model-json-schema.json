@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "documentType": {
+      "type": "string",
+      "const": "my-org/test"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fileExtension": {
+      "type": "string",
+      "const": ".test"
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "global": {
+          "type": "object",
+          "properties": {
+            "globalStuff": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "globalStuff"
+          ],
+          "additionalProperties": false
+        },
+        "other": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "names": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "id",
+            "ids"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "global",
+        "other"
+      ],
+      "additionalProperties": false
+    },
+    "$schema": {
+      "type": "string",
+      "const": "./document-model-json-schema.json"
+    }
+  },
+  "required": [
+    "id",
+    "documentType",
+    "name",
+    "fileExtension",
+    "state",
+    "$schema"
+  ],
+  "additionalProperties": false
+}

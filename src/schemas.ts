@@ -1,23 +1,16 @@
 import { z } from "zod";
+import { OIDSchema, PHIDSchema, StringSchema } from "./scalars";
 
-export const IdSchema = z.uuid();
-export const DocumentTypeSchema = z.string();
+export const DocumentTypeSchema = StringSchema;
 export const DocumentTypesSchema = z.array(DocumentTypeSchema);
-export const ScopeSchema = z.string();
-
-export const DescriptionSchema = z.string();
-export const ExtensionSchema = z.string();
-export const GqlSchema = z.string();
-export const EndpointSchema = z.url();
-export const CategorySchema = z.string();
-export const NameSchema = z.string();
+export const ScopeSchema = StringSchema;
+export const DescriptionSchema = StringSchema;
+export const ExtensionSchema = StringSchema;
+export const GqlSchema = StringSchema;
+export const CategorySchema = StringSchema;
+export const NameSchema = StringSchema;
 export const UrlSchema = z.url();
-
-export const SignerSchema = z.object({
-  address: z.string(),
-  networkId: z.string(),
-  chainId: z.number(),
-});
+export const EndpointSchema = UrlSchema;
 
 
 export const AuthorSchema = z.object({
@@ -25,69 +18,59 @@ export const AuthorSchema = z.object({
   url: UrlSchema,
 });
 
-export const ActionSchema = z.object({
+export const BaseActionSchema = z.object({
   scope: ScopeSchema,
-  type: z.string(),
+  type: StringSchema,
   input: z.unknown(),
-  signer: SignerSchema,
 });
 
-const ActionsSchema = z.record(ActionSchema.shape.type, ActionSchema);
-
-export const StateSchema = z.unknown();
+export const BaseStateSchema = z.unknown();
 
 export const HeaderSchema = z.object({
-  id: IdSchema,
-  documentType: DocumentTypeSchema,
-  documentModelId: IdSchema,
-  preferredEditorId: IdSchema.nullable(),
+  id: OIDSchema,
   name: NameSchema,
+  documentType: DocumentTypeSchema,
+  documentModelId: PHIDSchema,
+  preferredEditorId: PHIDSchema.optional(),
 });
 
 export const OperationSchema = z.object({
-  type: z.string(),
+  type: StringSchema,
   input: z.unknown(),
   signer: z.unknown(),
 });
 
 export const OperationsSchema = z.array(OperationSchema);
 
-export const DocumentSchema = z.object({
+export const BaseDocumentSchema = z.object({
   header: HeaderSchema,
-  state: StateSchema,
+  state: BaseStateSchema,
   operations: OperationsSchema,
 });
 
-export const ReducerFunctionFactory = z.function({
-  input: [DocumentSchema, ActionSchema],
-  output: DocumentSchema,
-})
 
-export const DocumentModelSchema = z.object({
-  id: IdSchema,
+export const BaseDocumentModelSchema = z.object({
+  id: PHIDSchema,
   documentType: DocumentTypeSchema,
   name: NameSchema,
-  actions: ActionsSchema,
-  reducer: ReducerFunctionFactory
 });
 
 export const VetraMetaSchema = z.object({
-  id: IdSchema,
+  id: PHIDSchema,
   name: NameSchema,
 });
 
-export const DocumentModelModuleSchema = VetraMetaSchema.extend({
-  documentModel: DocumentModelSchema,
-  documentType: DocumentTypeSchema,
+export const BaseDocumentModelModuleSchema = VetraMetaSchema.extend({
+  documentModel: BaseDocumentModelSchema,
+  initialState: BaseStateSchema,
   description: DescriptionSchema,
-  extension: ExtensionSchema,
   author: AuthorSchema,
 });
 
-export const DocumentModelModulesSchema = z.array(DocumentModelModuleSchema);
+export const DocumentModelModulesSchema = z.array(BaseDocumentModelModuleSchema);
 
 export const EditorSchema = z.function({
-  input: [DocumentSchema],
+  input: [BaseDocumentSchema],
 });
 
 export const EditorModuleSchema = VetraMetaSchema.extend({

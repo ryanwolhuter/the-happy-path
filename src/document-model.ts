@@ -1,6 +1,6 @@
 import z from "zod";
 import { Operation, Signer } from "./stub-types";
-import { HeaderSchema, ActionSchema, StateSchema, OperationsSchema, DocumentModelSchema } from "./schemas";
+import { HeaderSchema, BaseActionSchema, BaseStateSchema, OperationsSchema, BaseDocumentModelSchema } from "./schemas";
 
 export type ID = string;
 
@@ -33,14 +33,14 @@ export type DocumentModel<TState = any, TAction extends Action = any> = {
 
 export type PHDocumentHeaderFromSchema = z.infer<typeof HeaderSchema>;
 
-export type ActionFromSchema = z.infer<typeof ActionSchema>;
+export type ActionFromSchema = z.infer<typeof BaseActionSchema>;
 
-export type ActionsFromSchema = z.infer<typeof ActionSchema>;
+export type ActionsFromSchema = z.infer<typeof BaseActionSchema>;
 
-export type StateFromSchema = z.infer<typeof StateSchema>;
+export type StateFromSchema = z.infer<typeof BaseStateSchema>;
 
-export type StatesFromSchema = z.infer<typeof StateSchema>;
+export type StatesFromSchema = z.infer<typeof BaseStateSchema>;
 
 export type OperationsFromSchema = z.infer<typeof OperationsSchema>;
 
-export type DocumentModelFromSchema = z.infer<typeof DocumentModelSchema>;
+export type DocumentModelFromSchema = z.infer<typeof BaseDocumentModelSchema>;

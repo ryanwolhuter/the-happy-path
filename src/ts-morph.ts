@@ -30,3 +30,5 @@ async function upsertStatementByIdentifier(
     }
   }
 }
+
+upsertStatementByIdentifier('./src/action-schemas.ts', 'AddNameActionSchema', 'const AddNameActionSchema = z.object({});');
