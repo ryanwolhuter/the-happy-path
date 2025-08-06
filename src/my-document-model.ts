@@ -157,7 +157,7 @@ export const myDocument: MyDocument = {
   operations: [],
 };
 
-export const myReducer: MyReducer = MyReducerFactory.implement((document, action) => {
+export const myReducer = MyReducerFactory.implement((document, action) => {
   switch (action.type) {
     case "action1": {
       const { something } = action.input;

@@ -26,7 +26,7 @@
     },
     "$schema": {
       "type": "string",
-      "const": "./TestStateSchema.json"
+      "const": "./state-schema.json"
     },
     "graphqlSchema": {
       "type": "string",
