@@ -4,10 +4,10 @@ Currently, document models are expected to use graphql schemas as their source o
 
 We want to say this: 
 
-1. "A document model is defined by the type of it's State and the set of Actions which change its state."
-2. "State is defined as an object inside a scope, Actions are defined as objects with a known `type` like "MY_ACTION" and any input payload.
-3. "I can use graphql to define the type of a document model's State."
-4. "I can use graphql to define the set of a document model's Actions."
+1. "A document model is defined by the type of its `State` and the set of `Actions` which change its state."
+2. "`State` is defined as an object inside a scope, Actions are defined as objects with a known `type` like `"MY_ACTION"` and any input payload.
+3. "I can use graphql to define the type of a document model's `State`."
+4. "I can use graphql to define the set of a document model's `Actions`."
 
 We can take 1 and 2 as true by definition.
 
@@ -59,7 +59,7 @@ type AddNameAction {
 }
 ```
 
-It is impossible to use graphql alone to provide sufficient information to define the Actions which change the document model's state, because we cannot provide specific values for `type` and `scope` in graphql. 
+It is impossible to use graphql alone to provide sufficient information to define the `Actions` which change the document model's state, because we cannot provide specific values for `type` and `scope` in graphql. 
 
 Therefore we can conclude that 4 is false.
 
@@ -80,38 +80,47 @@ We derive this missing data using brittle and error prone means:
 - graphql string parsing and schema building is error prone
 - using an input name that does not exactly correspond to the operation name breaks the codegen
 - we are already getting the `type` based on the operation name text input, not graphql
-- determining action `type` is done without the control or knowledge of the user creating the document model, which is why our todo demo has actions with types like this: "AddTodoItemInputInput"
+- determining action `type` is done without the control or knowledge of the user creating the document model, which is why our todo demo has actions with types like this: `"AddTodoItemInputInput"`
 
-We are doing this because we have already acknowledged that we cannot use graphql to defined document models. 
+We are doing this because we have already acknowledged that we cannot use graphql to defined document models.
+
 We are already using text inputs for important fields.
 
 ### What is the alternative?
 
 We create a simple form with text inputs and dropdowns, with a readonly code block of the graphql next to each entry.
+
 We can already create a dropdown from the list of scalars we support.
 
 #### To define the state:
 
 - text input: scope
 - text input: field name
+
 tell us the name of the field you want to add to your state
-- dropdown: field type, one of: PHScalars, array of PHScalar, custom type
+- field type: 
+
+dropdown menu, one of: PHScalars, array of PHScalar, custom type
 from there we can create `myFieldName: MySelectedType`
 
-we can then show:
+we can then create and show:
 ```graphql
 type State {
  myFieldName: MySelectedType
 }
 ```
-We can dispatch "SET_STATE_SCHEMA" operations with this.
+We can dispatch `"SET_STATE_SCHEMA"` operations with this.
 
 However, it would be better to have:
 
-"CREATE_INITIAL_STATE_SCHEMA", 
-"ADD_STATE_SCHEMA_FIELD", 
-"REMOVE_STATE_SCHEMA_FIELD", 
-"UPDATE_STATE_SCHEMA_FIELD" 
+`"CREATE_INITIAL_STATE_SCHEMA"`
+
+`"ADD_STATE_SCHEMA_FIELD"`
+
+`"REMOVE_STATE_SCHEMA_FIELD"`
+
+`"UPDATE_STATE_SCHEMA_FIELD"`
+
 
 so that we can keep track of how the state schema is changing.
 
@@ -120,10 +129,13 @@ so that we can keep track of how the state schema is changing.
 - text input: action name
 - text input: action scope / just use the selected scope in editor
 - text input: input field name
-- dropdown: field type, one of: PHScalars, array of PHScalar, custom type
+- field type: 
+
+dropdown menu, one of: PHScalars, array of PHScalar, custom type
+
 from there we can create `myFieldName: MySelectedType`
 
-we can then show:
+we can then create and show:
 
 ```graphql
 """
@@ -185,7 +197,7 @@ If we know the name of a given type as selected by the user from our dropdown, w
 - infer all of the necessary types for state and actions, including validation of action types and action scopes
 - generate accurate graphql schemas to include in the document model specifications and display in the document model editor
 - generate json schemas for the document model specifications so developers can have validation and autocomplete in the specification json files
-- use zod's z.function().implement to create reducer functions that validate the state, action (including that the scope and type are correct) and resulting state with no extra codegen or input from builders
+- use zod's `z.function().implement` to create reducer functions that validate the state, action (including that the scope and type are correct) and resulting state with no extra codegen or input from builders
 
 #### Benefits for the user
 - We can still let users see graphql code if they want to
